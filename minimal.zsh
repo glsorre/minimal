@@ -41,6 +41,7 @@ function zle-line-init {
 
 function zle-keymap-select {
   minimal_render_vi_mode
+  preexec
   minimal_renderer
   zle && zle reset-prompt
 }
@@ -96,10 +97,34 @@ prompt_length(){
   echo $x
 }
 
+s_humanized(){
+  local human total_seconds=$1
+  local days=$(( total_seconds / 60 / 60 / 24 ))
+  local hours=$(( total_seconds / 60 / 60 % 24 ))
+  local minutes=$(( total_seconds / 60 % 60 ))
+  local seconds=$(( total_seconds % 60 ))
+
+  (( days > 0 )) && human+="${days}d "
+  (( hours > 0 )) && human+="${hours}h "
+  (( minutes > 0 )) && human+="${minutes}m "
+  human+="${seconds}s"
+
+  echo "$human"
+}
+
+function rprompt_execution_time(){
+  elapsed=$((SECONDS-timer))
+  if [[ elapsed -ge 5 ]] ; then
+    echo "%F{green}%B%S $(s_humanized ${elapsed}) %s%b%f"
+  else
+    echo ""
+  fi
+}
+
 rprompt_exit_code(){
-  local last_exit_code=$? 
+  last_exit_code=$? 
   if [[ last_exit_code -gt 0 ]] ; then
-    echo "%F{red}%B%S  $last_exit_code  %s%b%f"
+    echo "%F{red}%B%S $last_exit_code %s%b%f"
   else
     echo " "
   fi
@@ -178,10 +203,12 @@ git_prompt(){
   fi
 }
 
-function prompt(){
-  [[ ${MINIMAL_SPACE_PROMPT} == 1 ]] && echo 
+function preexec(){
+  timer=$SECONDS
+}
 
-  RPROMPT='$(rprompt_exit_code)'
+function prompt(){
+  [[ ${MINIMAL_SPACE_PROMPT} == 1 ]] && echo
 
   venv=$(plib_venv)
   if [[ -v venv ]] && prompt_std="%F{$MINIMAL_FADE_COLOR}${venv}%f "
@@ -189,11 +216,12 @@ function prompt(){
   prompt_vi='${MINIMAL_VI_PROMPT} '"${prompt_std}  "
   
   PROMPT=${PROMPT}$'\n'${prompt_vi}
+  RPROMPT='$(rprompt_exit_code)$(rprompt_execution_time)'
 }
 
 function minimal_renderer(){
   prompt_reset
-  version_prompt
+  version_prompt 
   envvar_prompt
   git_prompt
   prompt
