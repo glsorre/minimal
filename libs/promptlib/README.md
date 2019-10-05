@@ -1,1 +1,0 @@
-A minimal zsh theme designed around my need and based on lovely work by [@eendroroy](https://github.com/eendroroy)
