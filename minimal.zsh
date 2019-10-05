@@ -10,6 +10,7 @@ MINIMAL_PROMPT_SEP="|"
 MINIMAL_GIT_STASH_SYM='@'
 MINIMAL_GIT_PUSH_SYM='↑'
 MINIMAL_GIT_PULL_SYM='↓'
+MINIMAL_GIT_UNSTAGE_SYM='+'
 
 MINIMAL_JAVA_SYM='☕ '
 MINIMAL_PY_SYM='🐍 '
@@ -33,13 +34,13 @@ minimal_prompt_symbol_nml(){
 
 function zle-line-init {
   minimal_render_vi_mode
-  render_minimal
+  minimal_renderer
   zle && zle reset-prompt
 }
 
 function zle-keymap-select {
   minimal_render_vi_mode
-  render_minimal
+  minimal_renderer
   zle && zle reset-prompt
 }
 
@@ -49,6 +50,7 @@ minimal_render_vi_mode(){
 }
 
 export KEYTIMEOUT=1
+export ZLE_RPROMPT_INDENT=0
 
 minimal_vi_prompt(){
   case ${KEYMAP} in
@@ -91,6 +93,15 @@ prompt_length(){
     done
   fi
   echo $x
+}
+
+rprompt_exit_code(){
+  local last_exit_code=$? 
+  if [[ last_exit_code -gt 0 ]] ; then
+    echo "%F{red}%B%S  $last_exit_code  %s%b%f"
+  else
+    echo " "
+  fi
 }
 
 prompt_reset(){
@@ -139,6 +150,14 @@ git_prompt(){
   if [[ $(plib_is_git) == 1 ]]; then
     git_prompt_val+="%F{$MINIMAL_FADE_COLOR}[%f "
     git_prompt_val+="%B$(plib_git_branch)%b"
+
+    git_status=$(plib_git_status)
+  
+    mod_ut=$(plib_git_unstaged_mod "$git_status")
+    add_ut=$(plib_git_unstaged_add "$git_status")
+    del_ut=$(plib_git_unstaged_del "$git_status")
+
+    [[ mod_ut -gt 0 || add_ut -gt 0 || del_ut -gt 0 ]] && git_prompt_val+=" %B${MINIMAL_GIT_UNSTAGE_SYM}%b"
     [[ $(plib_git_stash) == 1 ]] && git_prompt_val+=" ${MINIMAL_GIT_STASH_SYM}"
     [[ ! -z $(minimal_git_left_right) ]] && git_prompt_val+=" %F{red}$(minimal_git_left_right)%f"
     git_prompt_val+=" %F{$MINIMAL_FADE_COLOR}]%f"
@@ -154,22 +173,19 @@ git_prompt(){
 }
 
 function prompt(){
-    [[ ${MINIMAL_SPACE_PROMPT} == 1 ]] && echo 
+  [[ ${MINIMAL_SPACE_PROMPT} == 1 ]] && echo 
 
-    venv=$(plib_venv)
-    if [[ -v venv ]] && prompt_std="%F{$MINIMAL_FADE_COLOR}${venv}%f "
-    prompt_std+="%f%F{$MINIMAL_FADE_COLOR}%~%f "
-    prompt_vi='${MINIMAL_VI_PROMPT} '"${prompt_std}"
-    PROMPT=${PROMPT}$'\n'${prompt_vi}
+  RPROMPT='$(rprompt_exit_code)'
 
-    if [[ "$MINIMAL_HIDE_EXIT_CODE" == '1' ]]; then
-      RPROMPT=''
-    else
-      RPROMPT="%(?..%F{red}%B%S  $?  %s%b%f)"
-    fi
+  venv=$(plib_venv)
+  if [[ -v venv ]] && prompt_std="%F{$MINIMAL_FADE_COLOR}${venv}%f "
+  prompt_std+="%f%F{$MINIMAL_FADE_COLOR}%~%f"
+  prompt_vi='${MINIMAL_VI_PROMPT} '"${prompt_std}  "
+  
+  PROMPT=${PROMPT}$'\n'${prompt_vi}
 }
 
-function render_minimal(){
+function minimal_renderer(){
   prompt_reset
   version_prompt
   envvar_prompt
@@ -178,5 +194,5 @@ function render_minimal(){
 }
 
 function precmd(){
-  render_minimal
+  minimal_renderer
 }
