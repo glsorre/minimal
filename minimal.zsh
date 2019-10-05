@@ -163,15 +163,12 @@ git_prompt(){
     git_prompt_val+=" %F{$MINIMAL_FADE_COLOR}]%f"
   fi
   escaped_prompt="$(prompt_length ${PROMPT})"
-  echo $escaped_prompt
   escaped_git="$(prompt_length ${git_prompt_val})"
-  echo $escaped_git
   right_width=$(($COLUMNS-$escaped_git-$escaped_prompt))
-  echo $right_width
   if [[ ${right_width} -lt 0 ]] ; then
     PROMPT="${PROMPT}"$'\n'"${git_prompt_val}"
   else
-    PROMPT="${PROMPT}${(l:$right_width::.:)}${git_prompt_val}"
+    PROMPT="${PROMPT}${(l:$right_width:::)}${git_prompt_val}"
   fi
 }
 
