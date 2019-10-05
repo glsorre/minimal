@@ -24,42 +24,41 @@ THEME_ROOT=${0:A:h}
 source "${THEME_ROOT}/libs/promptlib/activate"
 
 minimal_prompt_symbol_ins(){
-  echo -ne %F{green}%B%S  INS  %s%b%f
+  echo -ne "%F{green}%B%S  INS  %s%b%f"
 }
 
 minimal_prompt_symbol_nml(){
-  echo -ne %F{red}%B%S  CMD  %s%b%f
+  echo -ne "%F{red}%B%S  CMD  %s%b%f"
 }
 
 function zle-line-init {
   minimal_render_vi_mode
+  render_minimal
   zle && zle reset-prompt
 }
 
 function zle-keymap-select {
   minimal_render_vi_mode
+  render_minimal
   zle && zle reset-prompt
 }
 
 minimal_render_vi_mode(){
-  export MINIMAL_VI_PROMPT="$(minimal_vi_prompt)"
+  MINIMAL_VI_PROMPT="$(minimal_vi_prompt)"
+  export MINIMAL_VI_PROMPT
 }
 
+export KEYTIMEOUT=1
+
 minimal_vi_prompt(){
-  case "${KEYMAP}" in
-    vicmd)
-      echo -n "$(minimal_prompt_symbol_nml)"
-      ;;
-    main|viins)
-      echo -n "$(minimal_prompt_symbol_ins)"
-      ;;
+  case ${KEYMAP} in
+    (vicmd)      echo -n "$(minimal_prompt_symbol_nml)" ;;
+    (main|viins) echo -n "$(minimal_prompt_symbol_ins)" ;;
   esac
 }
 
 zle -N zle-line-init
 zle -N zle-keymap-select
-
-export KEYTIMEOUT=1
 
 minimal_git_left_right(){
   __git_left_right=$(plib_git_left_right)
@@ -98,12 +97,6 @@ prompt_reset(){
   PROMPT=""
 }
 
-if [[ ${precmd_functions[(ie)prompt_reset]} -le ${#precmd_functions} ]]; then
-    echo version_prompt already loaded
-else
-    precmd_functions+=(prompt_reset)
-fi
-
 version_prompt(){
   version_prompt_val=""
   if [[ -n ${MINIMAL_VERSION_PROMPT} ]]; then
@@ -127,12 +120,6 @@ version_prompt(){
   PROMPT="${PROMPT}${version_prompt_val}"
 }
 
-if [[ ${precmd_functions[(ie)version_prompt]} -le ${#precmd_functions} ]]; then
-    echo version_prompt already loaded
-else
-    precmd_functions+=(version_prompt)
-fi
-
 envvar_prompt(){
   envvar_prompt_val=""
   if [[ -n ${MINIMAL_ENVVAR_PROMPT} ]]; then
@@ -146,12 +133,6 @@ envvar_prompt(){
   fi
   PROMPT="${PROMPT}${envvar_prompt_val}"
 }
-
-if [[ ${precmd_functions[(ie)envvar_prompt]} -le ${#precmd_functions} ]]; then
-    echo envvar_prompt already loaded
-else
-    precmd_functions+=(envvar_prompt)
-fi
 
 git_prompt(){
   git_prompt_val=""
@@ -172,16 +153,9 @@ git_prompt(){
   fi
 }
 
-if [[ ${precmd_functions[(ie)git_prompt]} -le ${#precmd_functions} ]]; then
-    echo envvar_prompt already loaded
-else
-    precmd_functions+=(git_prompt)
-fi
-
 function prompt(){
-    [[ ${MINIMAL_ENABLE_VI_PROMPT} == 1 ]] && minimal_render_vi_mode
-    [[ ${MINIMAL_SPACE_PROMPT} == 1 ]] && echo
-    
+    [[ ${MINIMAL_SPACE_PROMPT} == 1 ]] && echo 
+
     venv=$(plib_venv)
     if [[ -v venv ]] && prompt_std="%F{$MINIMAL_FADE_COLOR}${venv}%f "
     prompt_std+="%f%F{$MINIMAL_FADE_COLOR}%~%f "
@@ -193,12 +167,16 @@ function prompt(){
     else
       RPROMPT="%(?..%F{red}%B%S  $?  %s%b%f)"
     fi
-
-    zle && zle reset-prompt
 }
 
-if [[ ${precmd_functions[(ie)prompt]} -le ${#precmd_functions} ]]; then
-  echo envvar_prompt already loaded
-else
-  precmd_functions+=(prompt)
-fi
+function render_minimal(){
+  prompt_reset
+  version_prompt
+  envvar_prompt
+  git_prompt
+  prompt
+}
+
+function precmd(){
+  render_minimal
+}
