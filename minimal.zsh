@@ -11,6 +11,7 @@ MINIMAL_GIT_STASH_SYM='@'
 MINIMAL_GIT_PUSH_SYM='↑'
 MINIMAL_GIT_PULL_SYM='↓'
 MINIMAL_GIT_UNSTAGE_SYM='+'
+MINIMAL_GIT_STAGE_SYM='!'
 
 MINIMAL_JAVA_SYM='☕ '
 MINIMAL_PY_SYM='🐍 '
@@ -152,11 +153,16 @@ git_prompt(){
     git_prompt_val+="%B$(plib_git_branch)%b"
 
     git_status=$(plib_git_status)
+
+    mod_st=$(plib_git_staged_mod "$git_status")
+    add_st=$(plib_git_staged_add "$git_status")
+    del_st=$(plib_git_staged_del "$git_status")
   
     mod_ut=$(plib_git_unstaged_mod "$git_status")
     add_ut=$(plib_git_unstaged_add "$git_status")
     del_ut=$(plib_git_unstaged_del "$git_status")
 
+    [[ mod_st -gt 0 || add_st -gt 0 || del_st -gt 0 ]] && git_prompt_val+=" %B${MINIMAL_GIT_STAGE_SYM}%b"
     [[ mod_ut -gt 0 || add_ut -gt 0 || del_ut -gt 0 ]] && git_prompt_val+=" %B${MINIMAL_GIT_UNSTAGE_SYM}%b"
     [[ $(plib_git_stash) == 1 ]] && git_prompt_val+=" ${MINIMAL_GIT_STASH_SYM}"
     [[ ! -z $(minimal_git_left_right) ]] && git_prompt_val+=" %F{red}$(minimal_git_left_right)%f"
