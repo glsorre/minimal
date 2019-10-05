@@ -129,7 +129,7 @@ git_prompt(){
     git_prompt_val+="%F{$MINIMAL_FADE_COLOR}[%f "
     git_prompt_val+="%f$(plib_git_branch)"
     [[ $(plib_git_stash) == 1 ]] && git_prompt_val+=" ${MINIMAL_GIT_STASH_SYM} "
-    [[ ! -z $(plib_git_left_right) ]] && git_prompt_val+=" $(minimal_git_left_right) "
+    [[ ! -z $(plib_git_left_right) ]] && git_prompt_val+=" %F{red}$(minimal_git_left_right)%f "
     git_prompt_val+="%F{$MINIMAL_FADE_COLOR}]%f"
   fi
   PROMPT="${PROMPT}${git_prompt_val}"
