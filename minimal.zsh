@@ -1,6 +1,5 @@
 #!/usr/bin/env zsh
 
-MINIMAL_PROMPT_SYMBOL=❱
 MINIMAL_FADE_COLOR=black
 MINIMAL_PROMPT_SEP="|"
 MINIMAL_GIT_STASH_SYM='@'
@@ -128,10 +127,8 @@ git_prompt(){
   if [[ $(plib_is_git) == 1 ]]; then
     git_prompt_val="%F{$MINIMAL_FADE_COLOR}[%f "
     git_prompt_val+="%f$(plib_git_branch)"
-    if [[ $(plib_git_stash) == 1 ]]; then
-      git_prompt_val+=" ${MINIMAL_GIT_STASH_SYM}"
-    fi
-    git_prompt_val+="$(minimal_git_left_right)"
+    [[ $(plib_git_stash) == 1 ]] && git_prompt_val+=" ${MINIMAL_GIT_STASH_SYM}"
+    [[ ! -z $(plib_git_left_right) ]] && git_prompt_val+=" $(minimal_git_left_right)"
     git_prompt_val+=" %F{$MINIMAL_FADE_COLOR}]%f"
   fi
   PROMPT="${PROMPT}${git_prompt_val}"
@@ -148,16 +145,18 @@ function prompt(){
     [[ ${MINIMAL_SPACE_PROMPT} == 1 ]] && echo
     
     venv=$(plib_venv)
-    if [[ -v venv ]] && prompt_std="%F{black}${venv}%f "
-    prompt_std+="%f%F{black}%~%f "
+    if [[ -v venv ]] && prompt_std="%F{$MINIMAL_FADE_COLOR}${venv}%f "
+    prompt_std+="%f%F{$MINIMAL_FADE_COLOR}%~%f "
     prompt_vi='${MINIMAL_VI_PROMPT} '"${prompt_std}"
-    PROMPT=${PROMPT}${prompt_vi}
+    PROMPT=${PROMPT}$'\n'${prompt_vi}
 
     if [[ "$MINIMAL_HIDE_EXIT_CODE" == '1' ]]; then
       RPROMPT=''
     else
       RPROMPT="%(?..%F{red}%B%S  $?  %s%b%f)"
     fi
+
+    zle && zle reset-prompt
 }
 
 if [[ ${precmd_functions[(ie)prompt]} -le ${#precmd_functions} ]]; then
