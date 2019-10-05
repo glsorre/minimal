@@ -6,6 +6,8 @@ MINIMAL_PROMPT_SEP="|"
 MINIMAL_GIT_STASH_SYM='@'
 MINIMAL_ENABLE_VI_PROMPT=1
 MINIMAL_SPACE_PROMPT=1
+MINIMAL_GIT_PUSH_SYM='↑'
+MINIMAL_GIT_PULL_SYM='↓'
 
 THEME_ROOT=${0:A:h}
 source "${THEME_ROOT}/libs/promptlib/activate"
@@ -49,20 +51,17 @@ zle -N zle-keymap-select
 export KEYTIMEOUT=1
 
 minimal_git_left_right(){
-  [[ -z "${AM_GIT_PUSH_SYM}" ]] && AM_GIT_PUSH_SYM='↑'
-  [[ -z "${AM_GIT_PULL_SYM}" ]] && AM_GIT_PULL_SYM='↓'
-
   __git_left_right=$(plib_git_left_right)
 
   __pull=$(echo "$__git_left_right" | awk '{print $2}' | tr -d ' \n')
   __push=$(echo "$__git_left_right" | awk '{print $1}' | tr -d ' \n')
 
-  [[ "$__pull" != 0 ]] && [[ "$__pull" != '' ]] && __pushpull="${__pull}${AM_GIT_PULL_SYM}"
+  [[ "$__pull" != 0 ]] && [[ "$__pull" != '' ]] && __pushpull="${__pull}${MINIMAL_GIT_PULL_SYM}"
   [[ -n "$__pushpull" ]] && __pushpull+=' '
-  [[ "$__push" != 0 ]] && [[ "$__push" != '' ]] && __pushpull+="${__push}${AM_GIT_PUSH_SYM}"
+  [[ "$__push" != 0 ]] && [[ "$__push" != '' ]] && __pushpull+="${__push}${MINIMAL_GIT_PUSH_SYM}"
 
   if [[ "$__pushpull" != '' ]]; then
-    echo -ne "%F{$AM_LEFT_RIGHT_COLOR}${__pushpull}%f"
+    echo -ne "${__pushpull}"
   fi
 }
 
@@ -132,9 +131,7 @@ git_prompt(){
     if [[ $(plib_git_stash) == 1 ]]; then
       git_prompt_val+=" ${MINIMAL_GIT_STASH_SYM}"
     fi
-    if [[ $(plib_git_left_right) == 1 ]]; then
-      git_prompt_val+="$(minimal_git_left_right)"
-    fi
+    git_prompt_val+="$(minimal_git_left_right)"
     git_prompt_val+=" %F{$MINIMAL_FADE_COLOR}]%f"
   fi
   PROMPT="${PROMPT}${git_prompt_val}"
