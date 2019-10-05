@@ -8,6 +8,15 @@ MINIMAL_SPACE_PROMPT=1
 MINIMAL_GIT_PUSH_SYM='↑'
 MINIMAL_GIT_PULL_SYM='↓'
 
+MINIMAL_JAVA_SYM='☕ '
+MINIMAL_PY_SYM='🐍 '
+MINIMAL_RB_SYM='RB:'
+MINIMAL_GO_SYM='GO:'
+MINIMAL_ELIXIR_SYM='EX:'
+MINIMAL_AM_CRYSTAL_SYM='CR:'
+MINIMAL_NODE_SYM='⬢ '
+MINIMAL_PHP_SYM='PHP:'
+
 THEME_ROOT=${0:A:h}
 source "${THEME_ROOT}/libs/promptlib/activate"
 
@@ -82,14 +91,14 @@ version_prompt(){
       [[ ${LOOP_INDEX} != "0" ]] && version_prompt_val+="%F{$MINIMAL_FADE_COLOR}${MINIMAL_PROMPT_SEP}%f"
       [[ ${LOOP_INDEX} == "0" ]] && LOOP_INDEX=$((LOOP_INDEX + 1)) && version_prompt_val+="%F{$MINIMAL_FADE_COLOR}[%f"
 
-      [[ ${_v} == "PYTHON" ]]    && version_prompt_val+="$(plib_python_version)"
-      [[ ${_v} == "RUBY" ]]      && version_prompt_val+="$(plib_ruby_version)"
-      [[ ${_v} == "JAVA" ]]      && version_prompt_val+="$(plib_java_version)"
-      [[ ${_v} == "GO" ]]        && version_prompt_val+="$(plib_go_version)"
-      [[ ${_v} == "ELIXIR" ]]    && version_prompt_val+="$(plib_elixir_version)"
-      [[ ${_v} == "CRYSTAL" ]]   && version_prompt_val+="$(plib_crystal_version)"
-      [[ ${_v} == "NODE" ]]      && version_prompt_val+="$(plib_node_version)"
-      [[ ${_v} == "PHP" ]]       && version_prompt_val+="$(plib_php_version)"
+      [[ ${_v} == "PYTHON" ]]    && version_prompt_val+="${MINIMAL_PY_SYM}$(plib_python_version)"
+      [[ ${_v} == "RUBY" ]]      && version_prompt_val+="${MINIMAL_RB_SYM}$(plib_ruby_version)"
+      [[ ${_v} == "JAVA" ]]      && version_prompt_val+="${MINIMAL_JAVA_SYM}$(plib_java_version)"
+      [[ ${_v} == "GO" ]]        && version_prompt_val+="${MINIMAL_GO_SYM}$(plib_go_version)"
+      [[ ${_v} == "ELIXIR" ]]    && version_prompt_val+="${MINIMAL_ELIXIR_SYM}$(plib_elixir_version)"
+      [[ ${_v} == "CRYSTAL" ]]   && version_prompt_val+="${MINIMAL_CRYSTAL_SYM}$(plib_crystal_version)"
+      [[ ${_v} == "NODE" ]]      && version_prompt_val+="${MINIMAL_NODE_SYM}$(plib_node_version)"
+      [[ ${_v} == "PHP" ]]       && version_prompt_val+="${MINIMAL_PHP_SYM}$(plib_php_version)"
     done
 
     [[ "$LOOP_INDEX" != "0" ]] && version_prompt_val+="%F{$MINIMAL_FADE_COLOR}]%f"
