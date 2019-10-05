@@ -1,10 +1,13 @@
 #!/usr/bin/env zsh
 
 MINIMAL_FADE_COLOR=black
-MINIMAL_PROMPT_SEP="|"
-MINIMAL_GIT_STASH_SYM='@'
+
 MINIMAL_ENABLE_VI_PROMPT=1
 MINIMAL_SPACE_PROMPT=1
+
+MINIMAL_PROMPT_SEP="|"
+
+MINIMAL_GIT_STASH_SYM='@'
 MINIMAL_GIT_PUSH_SYM='↑'
 MINIMAL_GIT_PULL_SYM='↓'
 
@@ -73,6 +76,24 @@ minimal_git_left_right(){
   fi
 }
 
+prompt_length(){
+  emulate -L zsh
+  local COLUMNS=${2:-$COLUMNS}
+  local -i x y=$#1 m
+  if (( y )); then
+    while (( ${${(%):-$1%$y(l.1.0)}[-1]} )); do
+      x=y
+      (( y *= 2 ));
+    done
+    local xy
+    while (( y > x + 1 )); do
+      m=$(( x + (y - x) / 2 ))
+      typeset ${${(%):-$1%$m(l.x.y)}[-1]}=$m
+    done
+  fi
+  echo $x
+}
+
 prompt_reset(){
   PROMPT=""
 }
@@ -137,11 +158,21 @@ git_prompt(){
   if [[ $(plib_is_git) == 1 ]]; then
     git_prompt_val+="%F{$MINIMAL_FADE_COLOR}[%f "
     git_prompt_val+="%B$(plib_git_branch)%b"
-    [[ $(plib_git_stash) == 1 ]] && echo cacca && git_prompt_val+=" ${MINIMAL_GIT_STASH_SYM}"
-    [[ ! -z $(minimal_git_left_right) ]] && echo cacca2 && git_prompt_val+=" %F{red}$(minimal_git_left_right)%f"
+    [[ $(plib_git_stash) == 1 ]] && git_prompt_val+=" ${MINIMAL_GIT_STASH_SYM}"
+    [[ ! -z $(minimal_git_left_right) ]] && git_prompt_val+=" %F{red}$(minimal_git_left_right)%f"
     git_prompt_val+=" %F{$MINIMAL_FADE_COLOR}]%f"
   fi
-  PROMPT="${PROMPT}${git_prompt_val}"
+  escaped_prompt="$(prompt_length ${PROMPT})"
+  echo $escaped_prompt
+  escaped_git="$(prompt_length ${git_prompt_val})"
+  echo $escaped_git
+  right_width=$(($COLUMNS-$escaped_git-$escaped_prompt))
+  echo $right_width
+  if [[ ${right_width} -lt 0 ]] ; then
+    PROMPT="${PROMPT}"$'\n'"${git_prompt_val}"
+  else
+    PROMPT="${PROMPT}${(l:$right_width::.:)}${git_prompt_val}"
+  fi
 }
 
 if [[ ${precmd_functions[(ie)git_prompt]} -le ${#precmd_functions} ]]; then
