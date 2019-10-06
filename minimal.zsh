@@ -24,6 +24,9 @@ MINIMAL_AM_CRYSTAL_SYM='CR:'
 MINIMAL_NODE_SYM='⬢ '
 MINIMAL_PHP_SYM='PHP:'
 
+export KEYTIMEOUT=1
+export ZLE_RPROMPT_INDENT=1
+
 THEME_ROOT=${0:A:h}
 source "${THEME_ROOT}/libs/promptlib/activate"
 
@@ -53,13 +56,10 @@ minimal_render_vi_mode(){
   export MINIMAL_VI_PROMPT
 }
 
-export KEYTIMEOUT=1
-export ZLE_RPROMPT_INDENT=0
-
 minimal_vi_prompt(){
   case ${KEYMAP} in
-    (vicmd)      echo -n "$(minimal_prompt_symbol_nml)" ;;
-    (main|viins) echo -n "$(minimal_prompt_symbol_ins)" ;;
+    (vicmd)      echo -ne "$(minimal_prompt_symbol_nml)" ;;
+    (main|viins) echo -ne "$(minimal_prompt_symbol_ins)" ;;
   esac
 }
 
@@ -123,11 +123,7 @@ s_humanized(){
 
 rprompt_execution_time(){
   elapsed=$((SECONDS-timer))
-  if [[ elapsed -ge 5 ]] ; then
-    echo "%F{8}%K{7} $(s_humanized ${elapsed}) %k%f"
-  else
-    echo ""
-  fi
+  if [[ elapsed -ge 5 ]] && echo -ne "%F{8}%K{7} $(s_humanized ${elapsed}) %k%f"
 }
 
 rprompt_exit_code(){
@@ -135,15 +131,11 @@ rprompt_exit_code(){
 }
 
 rprompt_background_jobs(){
-  if [[ $(plib_bg_count) -gt 0 ]] ; then
-    echo "%F{8}%K{7} $(plib_bg_count)${MINIMAL_BACKGROUND_JOB_SYM} %k%f"
-  else
-    echo ""
-  fi
+  if [[ $(plib_bg_count) -gt 0 ]] &&  echo -ne "%F{8}%K{7} $(plib_bg_count)${MINIMAL_BACKGROUND_JOB_SYM} %k%f"
 }
 
 prompt_reset(){
-  PROMPT=""
+  unset PROMPT
 }
 
 version_prompt(){
@@ -203,7 +195,7 @@ git_prompt(){
     [[ mod_ut -gt 0 || add_ut -gt 0 || del_ut -gt 0 ]] && git_prompt_val+=" %B${MINIMAL_GIT_UNSTAGE_SYM}%b"
     [[ $(plib_git_stash) == 1 ]] && git_prompt_val+=" ${MINIMAL_GIT_STASH_SYM}"
     [[ ! -z $(minimal_git_left_right) ]] && git_prompt_val+=" %F{red}$(minimal_git_left_right)%f"
-    git_prompt_val+=" %F{$MINIMAL_FADE_COLOR}]%f"
+    git_prompt_val+=" %F{$MINIMAL_FADE_COLOR}]%f "
   fi
   escaped_prompt="$(prompt_length ${PROMPT})"
   escaped_git="$(prompt_length ${git_prompt_val})"
@@ -211,7 +203,7 @@ git_prompt(){
   if [[ ${right_width} -lt 0 ]] ; then
     PROMPT="${PROMPT}"$'\n'"${git_prompt_val}"
   else
-    PROMPT="${PROMPT}${(l:$right_width:::)}${git_prompt_val}"
+    PROMPT="${PROMPT}${(l:$right_width:: :)}${git_prompt_val}"
   fi
 }
 
@@ -220,19 +212,20 @@ preexec(){
 }
 
 prompt(){
-  [[ ${MINIMAL_SPACE_PROMPT} == 1 ]] && echo
+  [[ ${MINIMAL_SPACE_PROMPT} == 1 ]] && echo -e
 
+  prompt_std=""
   venv=$(plib_venv)
-  if [[ -v venv ]] && prompt_std="%F{$MINIMAL_FADE_COLOR}${venv}%f "
-  prompt_std+="%f%F{$MINIMAL_FADE_COLOR}%~%f"
-  prompt_vi='${MINIMAL_VI_PROMPT} '"${prompt_std}  "
-  
-  PROMPT=${PROMPT}$'\n'${prompt_vi}
+  if [[ -v venv ]] && prompt_std+="%F{$MINIMAL_FADE_COLOR}${venv}%f "
+  prompt_std+="%f%F{$MINIMAL_FADE_COLOR}%~%f  "
+  prompt_vi='${MINIMAL_VI_PROMPT} '"${prompt_std}"
 
   background=$(rprompt_background_jobs)
   exit_code=$(rprompt_exit_code)
   execution_time=$(rprompt_execution_time)
-  RPROMPT=${background}${execution_time}${exit_code}
+
+  RPROMPT="${background}${execution_time}${exit_code}"
+  PROMPT=${PROMPT}$'\n'"${prompt_vi}"
 }
 
 minimal_renderer(){
