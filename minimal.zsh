@@ -7,6 +7,8 @@ MINIMAL_SPACE_PROMPT=1
 
 MINIMAL_PROMPT_SEP="|"
 
+MINIMAL_BACKGROUND_JOB_SYM="♦"
+
 MINIMAL_GIT_STASH_SYM='@'
 MINIMAL_GIT_PUSH_SYM='↑'
 MINIMAL_GIT_PULL_SYM='↓'
@@ -33,13 +35,13 @@ minimal_prompt_symbol_nml(){
   echo -ne "%F{red}%B%S  CMD  %s%b%f"
 }
 
-function zle-line-init {
+zle-line-init(){
   minimal_render_vi_mode
   minimal_renderer
   zle && zle reset-prompt
 }
 
-function zle-keymap-select {
+zle-keymap-select(){
   minimal_render_vi_mode
   preexec
   minimal_renderer
@@ -112,7 +114,7 @@ s_humanized(){
   echo "$human"
 }
 
-function rprompt_execution_time(){
+rprompt_execution_time(){
   elapsed=$((SECONDS-timer))
   if [[ elapsed -ge 5 ]] ; then
     echo "%F{green}%B%S $(s_humanized ${elapsed}) %s%b%f"
@@ -122,11 +124,14 @@ function rprompt_execution_time(){
 }
 
 rprompt_exit_code(){
-  last_exit_code=$? 
-  if [[ last_exit_code -gt 0 ]] ; then
-    echo "%F{red}%B%S $last_exit_code %s%b%f"
+  echo -ne "%(?..%F{red}%B%S %? %s%b%f)"
+}
+
+rprompt_background_jobs(){
+  if [[ $(plib_bg_count) -gt 0 ]] ; then
+    echo "%F{green}%B%S $(plib_bg_count)${MINIMAL_BACKGROUND_JOB_SYM} %s%b%f"
   else
-    echo " "
+    echo ""
   fi
 }
 
@@ -203,11 +208,11 @@ git_prompt(){
   fi
 }
 
-function preexec(){
+preexec(){
   timer=$SECONDS
 }
 
-function prompt(){
+prompt(){
   [[ ${MINIMAL_SPACE_PROMPT} == 1 ]] && echo
 
   venv=$(plib_venv)
@@ -216,10 +221,14 @@ function prompt(){
   prompt_vi='${MINIMAL_VI_PROMPT} '"${prompt_std}  "
   
   PROMPT=${PROMPT}$'\n'${prompt_vi}
-  RPROMPT='$(rprompt_exit_code)$(rprompt_execution_time)'
+
+  background=$(rprompt_background_jobs)
+  exit_code=$(rprompt_exit_code)
+  execution_time=$(rprompt_execution_time)
+  RPROMPT=${background}${execution_time}${exit_code}
 }
 
-function minimal_renderer(){
+minimal_renderer(){
   prompt_reset
   version_prompt 
   envvar_prompt
@@ -227,6 +236,6 @@ function minimal_renderer(){
   prompt
 }
 
-function precmd(){
+precmd(){
   minimal_renderer
 }
