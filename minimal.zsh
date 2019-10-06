@@ -28,11 +28,11 @@ THEME_ROOT=${0:A:h}
 source "${THEME_ROOT}/libs/promptlib/activate"
 
 minimal_prompt_symbol_ins(){
-  echo -ne "%F{green}%B%S  INS  %s%b%f"
+  echo -ne "%F{8}%K{7}  INS  %k%f"
 }
 
 minimal_prompt_symbol_nml(){
-  echo -ne "%F{red}%B%S  CMD  %s%b%f"
+  echo -ne "%F{15}%K{1}  CMD  %k%f"
 }
 
 zle-line-init(){
@@ -63,6 +63,13 @@ minimal_vi_prompt(){
   esac
 }
 
+minimal-accept-line () {
+    timer=$SECONDS
+    zle accept-line
+}
+
+bindkey '^M' minimal-accept-line
+zle -N minimal-accept-line
 zle -N zle-line-init
 zle -N zle-keymap-select
 
@@ -117,19 +124,19 @@ s_humanized(){
 rprompt_execution_time(){
   elapsed=$((SECONDS-timer))
   if [[ elapsed -ge 5 ]] ; then
-    echo "%F{green}%B%S $(s_humanized ${elapsed}) %s%b%f"
+    echo "%F{8}%K{7} $(s_humanized ${elapsed}) %k%f"
   else
     echo ""
   fi
 }
 
 rprompt_exit_code(){
-  echo -ne "%(?..%F{red}%B%S %? %s%b%f)"
+  echo -ne "%(?..%F{15}%K{1} %? %k%f)"
 }
 
 rprompt_background_jobs(){
   if [[ $(plib_bg_count) -gt 0 ]] ; then
-    echo "%F{green}%B%S $(plib_bg_count)${MINIMAL_BACKGROUND_JOB_SYM} %s%b%f"
+    echo "%F{8}%K{7} $(plib_bg_count)${MINIMAL_BACKGROUND_JOB_SYM} %k%f"
   else
     echo ""
   fi
