@@ -224,15 +224,12 @@ prompt(){
   exit_code=$(rprompt_exit_code)
   execution_time=$(rprompt_execution_time)
 
-  case $(tty) in 
-  (/dev/tty[1-9])
+  if [[ $(tty) in (/dev/tty[1-9]) ]]; then    
     PROMPT='%~ $  '
-    ;; 
-    (*)
+  else
     RPROMPT="${background}${execution_time}${exit_code}"
     PROMPT=${PROMPT}$'\n'"${prompt_vi}"
-    ;; 
-  esac
+  fi
 }
 
 minimal_renderer(){
