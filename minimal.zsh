@@ -224,20 +224,22 @@ prompt(){
   exit_code=$(rprompt_exit_code)
   execution_time=$(rprompt_execution_time)
 
-  if [[ $(tty) == (/dev/tty[1-9]) ]]; then    
-    PROMPT='%~ $  '
-  else
-    RPROMPT="${background}${execution_time}${exit_code}"
-    PROMPT=${PROMPT}$'\n'"${prompt_vi}"
+  RPROMPT="${background}${execution_time}${exit_code}"
+  PROMPT=${PROMPT}$'\n'"${prompt_vi}"
+
   fi
 }
 
 minimal_renderer(){
-  prompt_reset
-  version_prompt 
-  envvar_prompt
-  git_prompt
-  prompt
+  if [[ $(tty) == (/dev/tty[1-9]) ]]; then    
+    PROMPT='%~ $  '
+  else
+    prompt_reset
+    version_prompt 
+    envvar_prompt
+    git_prompt
+    prompt
+  fi
 }
 
 precmd(){
