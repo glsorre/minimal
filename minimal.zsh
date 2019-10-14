@@ -226,12 +226,11 @@ prompt(){
 
   RPROMPT="${background}${execution_time}${exit_code}"
   PROMPT=${PROMPT}$'\n'"${prompt_vi}"
-
-  fi
 }
 
 minimal_renderer(){
-  if [[ $(tty) == (/dev/tty[1-9]) ]]; then    
+  if [[ $(tty) == (/dev/tty[1-9]) ]]; then
+    prompt_reset
     PROMPT='%~ $  '
   else
     prompt_reset
