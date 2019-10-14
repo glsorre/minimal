@@ -224,7 +224,7 @@ prompt(){
   exit_code=$(rprompt_exit_code)
   execution_time=$(rprompt_execution_time)
 
-  if [[ $(tty) in (/dev/tty[1-9]) ]]; then    
+  if [[ $(tty) == (/dev/tty[1-9]) ]]; then    
     PROMPT='%~ $  '
   else
     RPROMPT="${background}${execution_time}${exit_code}"
