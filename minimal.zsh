@@ -229,7 +229,7 @@ prompt(){
 }
 
 minimal_renderer(){
-  if [[ $(tty) == (/dev/tty[1-9]) ]] ; then
+  if [[ `tput colors` != ]] ; then
     prompt_reset
     PROMPT='%~ $  '
   else
