@@ -229,7 +229,7 @@ prompt(){
 }
 
 minimal_renderer(){
-  if [[ `tput colors` != ]] ; then
+  if [[ `tput colors` != 256 ]] ; then
     prompt_reset
     PROMPT='%~ $  '
   else
