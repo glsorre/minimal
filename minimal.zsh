@@ -38,16 +38,20 @@ minimal_prompt_symbol_nml(){
   echo -ne "%F{15}%K{1}  CMD  %k%f"
 }
 
+TRAPWINCH() {
+  #minimal_render_vi_mode
+  preexec
+  zle && zle reset-prompt
+}
+
 zle-line-init(){
   minimal_render_vi_mode
-  minimal_renderer
   zle && zle reset-prompt
 }
 
 zle-keymap-select(){
   minimal_render_vi_mode
   preexec
-  minimal_renderer
   zle && zle reset-prompt
 }
 
@@ -72,6 +76,7 @@ bindkey '^M' minimal-accept-line
 zle -N minimal-accept-line
 zle -N zle-line-init
 zle -N zle-keymap-select
+setopt prompt_subst
 
 minimal_git_left_right(){
   __git_left_right=$(plib_git_left_right)
