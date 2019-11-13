@@ -196,8 +196,10 @@ git_prompt(){
     add_ut=$(plib_git_unstaged_add "$git_status")
     del_ut=$(plib_git_unstaged_del "$git_status")
 
+    new=$(plib_git_status_new "$git_status")
+
     [[ mod_st -gt 0 || add_st -gt 0 || del_st -gt 0 ]] && git_prompt_val+=" %B${MINIMAL_GIT_STAGE_SYM}%b"
-    [[ mod_ut -gt 0 || add_ut -gt 0 || del_ut -gt 0 ]] && git_prompt_val+=" %B${MINIMAL_GIT_UNSTAGE_SYM}%b"
+    [[ mod_ut -gt 0 || add_ut -gt 0 || del_ut -gt 0 || new -gt 0 ]] && git_prompt_val+=" %B${MINIMAL_GIT_UNSTAGE_SYM}%b"
     [[ $(plib_git_stash) == 1 ]] && git_prompt_val+=" ${MINIMAL_GIT_STASH_SYM}"
     [[ ! -z $(minimal_git_left_right) ]] && git_prompt_val+=" %F{red}$(minimal_git_left_right)%f"
     git_prompt_val+=" %F{$MINIMAL_FADE_COLOR}]%f "
