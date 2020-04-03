@@ -28,6 +28,7 @@ export ZLE_RPROMPT_INDENT=1
 
 THEME_ROOT=${0:A:h}
 source "${THEME_ROOT}/libs/promptlib/activate"
+source "${THEME_ROOT}/libs/zsh-async/async.zsh"
 
 minimal_prompt_symbol_ins(){
   echo -ne "%F{8}%K{7}  INS  %k%f"
@@ -67,7 +68,7 @@ minimal_vi_prompt(){
 }
 
 minimal-accept-line () {
-    timer=$SECONDS
+    export TIMER=$(date +%s)
     zle accept-line
 }
 
@@ -126,27 +127,36 @@ s_humanized(){
 }
 
 rprompt_execution_time(){
-  elapsed=$((SECONDS-timer))
+  started=$1
+  now=$(date +%s)
+  elapsed=$((now-started))
   if [[ elapsed -ge 5 ]] && echo -ne "%F{8}%K{7} $(s_humanized ${elapsed}) %k%f"
 }
 
 rprompt_exit_code(){
-  echo -ne "%(?..%F{15}%K{1} %? %k%f)"
+  echo -n "%(?..%F{15}%K{1} %? %k%f)"
 }
 
 rprompt_background_jobs(){
-  if [[ $(plib_bg_count) -gt 0 ]] &&  echo -ne "%F{8}%K{7} $(plib_bg_count)${MINIMAL_BACKGROUND_JOB_SYM} %k%f"
+  n_processes=$1
+  if [[ $n_processes -gt 0 ]] &&  echo -n "%F{8}%K{7} ${n_processes}${MINIMAL_BACKGROUND_JOB_SYM} %k%f"
 }
 
 prompt_reset(){
   unset PROMPT
+  RPROMPT=''
+  
+  unset VERSION_PROMPT
+  unset ENVVAR_PROMPT
+  unset GIT_PROMPT
+  unset LPROMPT
 }
 
 version_prompt(){
   version_prompt_val=""
-  if [[ -n ${MINIMAL_VERSION_PROMPT} ]]; then
+  if [[ -n ${@} ]]; then
     local LOOP_INDEX=0
-    for _v in $(echo "${MINIMAL_VERSION_PROMPT}"); do
+    for _v in $(echo "${@}"); do
       [[ ${LOOP_INDEX} != "0" ]] && version_prompt_val+="%F{$MINIMAL_FADE_COLOR}${MINIMAL_PROMPT_SEP}%f"
       [[ ${LOOP_INDEX} == "0" ]] && LOOP_INDEX=$((LOOP_INDEX + 1)) && version_prompt_val+="%F{$MINIMAL_FADE_COLOR}[%f"
 
@@ -162,24 +172,30 @@ version_prompt(){
 
     [[ "$LOOP_INDEX" != "0" ]] && version_prompt_val+="%F{$MINIMAL_FADE_COLOR}]%f"
   fi
-  PROMPT="${PROMPT}${version_prompt_val}"
+  echo -n ${version_prompt_val}
 }
 
 envvar_prompt(){
+  array=( $@ )
+  len=${array[-1]}
+  _names=(${array[@]:0:$len})
+  _values=(${array[@]:$len:-1})
+
   envvar_prompt_val=""
-  if [[ -n ${MINIMAL_ENVVAR_PROMPT} ]]; then
+  if [[ -n ${_names} ]]; then
     local LOOP_INDEX=0
-    for _var in $(echo "${MINIMAL_ENVVAR_PROMPT}"); do
+    for _var in $(echo "${_names}"); do
       [[ ${LOOP_INDEX} != "0" ]] && envvar_prompt_val+="%F{$MINIMAL_FADE_COLOR}${MINIMAL_PROMPT_SEP}%f"
       [[ ${LOOP_INDEX} == "0" ]] && LOOP_INDEX=$((LOOP_INDEX + 1)) && envvar_prompt_val+="%F{$MINIMAL_FADE_COLOR}[%f"
-      [[ ${_var} != "" ]] && envvar_prompt_val+="${_var}:${(P)_var}"
+      [[ ${_var} != "" ]] && envvar_prompt_val+="${_var}:${_values[$LOOP_INDEX]}" && LOOP_INDEX=$((LOOP_INDEX + 1))
     done
     [[ "$LOOP_INDEX" != "0" ]] && envvar_prompt_val+="%F{$MINIMAL_FADE_COLOR}]%f"
   fi
-  PROMPT="${PROMPT}${envvar_prompt_val}"
+  echo -n ${envvar_prompt_val}
 }
 
 git_prompt(){
+  cd $1
   git_prompt_val=""
   if [[ $(plib_is_git) == 1 ]]; then
     git_prompt_val+="%F{$MINIMAL_FADE_COLOR}[%f "
@@ -199,54 +215,95 @@ git_prompt(){
 
     [[ mod_st -gt 0 || add_st -gt 0 || del_st -gt 0 ]] && git_prompt_val+=" %F{foreground}${MINIMAL_GIT_STAGE_SYM}%f"
     [[ mod_ut -gt 0 || add_ut -gt 0 || del_ut -gt 0 || new -gt 0 ]] && git_prompt_val+=" %F{foreground}${MINIMAL_GIT_UNSTAGE_SYM}%f"
-    [[ $(plib_git_stash) == 1 ]] && git_prompt_val+=" ${MINIMAL_GIT_STASH_SYM}"
+    [[ $(plib_git_stash) -gt 1 ]] && git_prompt_val+=" ${MINIMAL_GIT_STASH_SYM}"
     [[ ! -z $(minimal_git_left_right) ]] && git_prompt_val+=" %F{red}$(minimal_git_left_right)%f"
     git_prompt_val+=" %F{$MINIMAL_FADE_COLOR}]%f "
   fi
-  escaped_prompt="$(prompt_length ${PROMPT})"
-  escaped_git="$(prompt_length ${git_prompt_val})"
-  right_width=$(($COLUMNS-$escaped_git-$escaped_prompt))
-  if [[ ${right_width} -lt 0 ]] ; then
-    PROMPT="${PROMPT}"$'\n'"${git_prompt_val}"
-  else
-    PROMPT="${PROMPT}${(l:$right_width:: :)}${git_prompt_val}"
-  fi
+  cd ~
+  echo -n ${git_prompt_val}
 }
 
 preexec(){
-  timer=$SECONDS
+  export TIMER=$(date +%s)
 }
 
 prompt(){
-  [[ ${MINIMAL_SPACE_PROMPT} == 1 ]] && echo -e
-
+  export VIRTUAL_ENV=$1
   prompt_std=""
   venv=$(plib_venv)
   if [[ -v venv ]] && prompt_std+="%F{$MINIMAL_FADE_COLOR}${venv}%f "
   prompt_std+="%f%F{$MINIMAL_FADE_COLOR}%~%f  "
   prompt_vi='${MINIMAL_VI_PROMPT} '"${prompt_std}"
 
-  background=$(rprompt_background_jobs)
-  exit_code=$(rprompt_exit_code)
-  execution_time=$(rprompt_execution_time)
+  echo -n "${prompt_vi}"
+}
 
-  RPROMPT="${background}${execution_time}${exit_code}"
-  PROMPT=${PROMPT}$'\n'"${prompt_vi}"
+rprompt(){
+  background=$(rprompt_background_jobs $2)
+  exit_code=$(rprompt_exit_code)
+  execution_time=$(rprompt_execution_time $1)
+
+  echo -n ${background}${execution_time}${exit_code}
+}
+
+set_prompt(){
+  case $1 in
+    rprompt*)
+      RPROMPT=$3
+      ;;
+    version_prompt)
+      export VERSION_PROMPT=$3
+      ;;
+    envvar_prompt)
+      export ENVVAR_PROMPT=$3
+      ;;
+    git_prompt)
+      export GIT_PROMPT=$3
+      ;;
+    prompt)
+      export LPROMPT=$3
+      ;;
+  esac
+
+  escaped_prompt="$(prompt_length "${VERSION_PROMPT}${ENVVAR_PROMPT}")"
+  escaped_git="$(prompt_length ${GIT_PROMPT})"
+  right_width=$(($COLUMNS-$escaped_git-$escaped_prompt))
+  PROMPT=${VERSION_PROMPT}${ENVVAR_PROMPT}${(l:$right_width:: :)}${GIT_PROMPT}$'\n'${LPROMPT}
+  zle && zle reset-prompt
 }
 
 minimal_renderer(){
-  if [[ `tput colors` != 256 ]] ; then
+  prompt_reset
+  PROMPT='%~ $  '
+  if [[ `tput colors` == 256 ]] ; then
+    async_register_callback "minimal" set_prompt
+
+    local MINIMAL_VERSION_VALUES=()
+    for _var in $(echo "${MINIMAL_ENVVAR_PROMPT}"); do
+      if [ ${(P)_var} ]; then
+        MINIMAL_VERSION_VALUES+=(${(P)_var})
+      else
+        MINIMAL_VERSION_VALUES+=(" ")
+      fi
+    done
+    local CURRENT_PATH=`pwd`
+    local VIRTUAL_ENV=$VIRTUAL_ENV
+    local TIMER=$TIMER
+    if [[ ! $TIMER ]]; then
+      TIMER=$(date +%s)
+    fi
+
     prompt_reset
-    PROMPT='%~ $  '
-  else
-    prompt_reset
-    version_prompt 
-    envvar_prompt
-    git_prompt
-    prompt
+    [[ ${MINIMAL_SPACE_PROMPT} == 1 ]] && echo
+    async_job "minimal" version_prompt $MINIMAL_VERSION_PROMPT
+    async_job "minimal" envvar_prompt $MINIMAL_ENVVAR_PROMPT $MINIMAL_VERSION_VALUES ${#MINIMAL_ENVVAR_PROMPT[@]}
+    async_job "minimal" git_prompt $CURRENT_PATH
+    async_job "minimal" prompt $VIRTUAL_ENV
+    async_job "minimal" rprompt $TIMER $(plib_bg_count)
   fi
 }
 
 precmd(){
+  async_start_worker "minimal" -n -u
   minimal_renderer
 }
