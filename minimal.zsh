@@ -266,7 +266,7 @@ set_prompt(){
       ;;
   esac
 
-  escaped_prompt="$(prompt_length "${VERSION_PROMPT}${ENVVAR_PROMPT}")"
+  escaped_prompt="$(prompt_length "${VERSION_PROMPT}${ENVVAR_PROMPT}}")"
   escaped_git="$(prompt_length ${GIT_PROMPT})"
   right_width=$(($COLUMNS-$escaped_git-$escaped_prompt))
 
