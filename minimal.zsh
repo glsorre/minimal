@@ -276,7 +276,7 @@ set_prompt(){
     PROMPT=${VERSION_PROMPT}${ENVVAR_PROMPT}${(l:$right_width:: :)}${GIT_PROMPT}$'\n'${LPROMPT}
   fi
   
-  zle && zle reset-prompt
+  zle reset-prompt
 }
 
 __import_env() {
