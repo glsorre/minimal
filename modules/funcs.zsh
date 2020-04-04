@@ -22,36 +22,27 @@ minimal-accept-line () {
     zle accept-line
 }
 
-set_prompt(){
-  case $1 in
-    rprompt*)
-      RPROMPT=$3
-      ;;
-    version_prompt)
-      export VERSION_PROMPT=$3
-      ;;
-    envvar_prompt)
-      export ENVVAR_PROMPT=$3
-      ;;
-    git_prompt)
-      export GIT_PROMPT=$3
-      ;;
-    prompt)
-      export LPROMPT=$3
-      ;;
-  esac
+minimal_prompt_symbol_ins(){
+  echo -ne "%F{8}%K{7}  INS  %k%f"
+}
 
-  escaped_prompt="$(prompt_length "${VERSION_PROMPT}${ENVVAR_PROMPT}}")"
-  escaped_git="$(prompt_length ${GIT_PROMPT})"
-  right_width=$(($COLUMNS-$escaped_git-$escaped_prompt))
+minimal_prompt_symbol_nml(){
+  echo -ne "%F{15}%K{1}  CMD  %k%f"
+}
 
-  if [[ ${MINIMAL_SPACE_PROMPT} == 1 ]]; then
-    PROMPT=$'\n'${VERSION_PROMPT}${ENVVAR_PROMPT}${(l:$right_width:: :)}${GIT_PROMPT}$'\n'${LPROMPT}
-  else
-    PROMPT=${VERSION_PROMPT}${ENVVAR_PROMPT}${(l:$right_width:: :)}${GIT_PROMPT}$'\n'${LPROMPT}
+minimal_git_left_right(){
+  __git_left_right=$(plib_git_left_right)
+
+  __pull=$(echo "$__git_left_right" | awk '{print $2}' | tr -d ' \n')
+  __push=$(echo "$__git_left_right" | awk '{print $1}' | tr -d ' \n')
+
+  [[ "$__pull" != 0 ]] && [[ "$__pull" != '' ]] && __pushpull="${__pull}${MINIMAL_GIT_PULL_SYM}"
+  [[ -n "$__pushpull" ]] && __pushpull+=' '
+  [[ "$__push" != 0 ]] && [[ "$__push" != '' ]] && __pushpull+="${__push}${MINIMAL_GIT_PUSH_SYM}"
+
+  if [[ "$__pushpull" != '' ]]; then
+    echo -ne "${__pushpull}"
   fi
-  
-  zle && zle reset-prompt
 }
 
 prompt(){
@@ -63,14 +54,6 @@ prompt(){
   prompt_vi='${MINIMAL_VI_PROMPT} '"${prompt_std}"
 
   echo -n "${prompt_vi}"
-}
-
-rprompt(){
-  background=$(rprompt_background_jobs $2)
-  exit_code=$(rprompt_exit_code)
-  execution_time=$(rprompt_execution_time $1)
-
-  echo -n ${background}${execution_time}${exit_code}
 }
 
 git_prompt(){
@@ -100,21 +83,6 @@ git_prompt(){
   fi
   cd ~
   echo -n ${git_prompt_val}
-}
-
-minimal_git_left_right(){
-  __git_left_right=$(plib_git_left_right)
-
-  __pull=$(echo "$__git_left_right" | awk '{print $2}' | tr -d ' \n')
-  __push=$(echo "$__git_left_right" | awk '{print $1}' | tr -d ' \n')
-
-  [[ "$__pull" != 0 ]] && [[ "$__pull" != '' ]] && __pushpull="${__pull}${MINIMAL_GIT_PULL_SYM}"
-  [[ -n "$__pushpull" ]] && __pushpull+=' '
-  [[ "$__push" != 0 ]] && [[ "$__push" != '' ]] && __pushpull+="${__push}${MINIMAL_GIT_PUSH_SYM}"
-
-  if [[ "$__pushpull" != '' ]]; then
-    echo -ne "${__pushpull}"
-  fi
 }
 
 prompt_length(){
@@ -148,6 +116,14 @@ s_humanized(){
   human+="${seconds}s"
 
   echo "$human"
+}
+
+rprompt(){
+  background=$(rprompt_background_jobs $2)
+  exit_code=$(rprompt_exit_code)
+  execution_time=$(rprompt_execution_time $1)
+
+  echo -n ${background}${execution_time}${exit_code}
 }
 
 rprompt_execution_time(){
@@ -219,10 +195,34 @@ envvar_prompt(){
   echo -n ${envvar_prompt_val}
 }
 
-minimal_prompt_symbol_ins(){
-  echo -ne "%F{8}%K{7}  INS  %k%f"
-}
+set_prompt(){
+  case $1 in
+    rprompt*)
+      RPROMPT=$3
+      ;;
+    version_prompt)
+      export VERSION_PROMPT=$3
+      ;;
+    envvar_prompt)
+      export ENVVAR_PROMPT=$3
+      ;;
+    git_prompt)
+      export GIT_PROMPT=$3
+      ;;
+    prompt)
+      export LPROMPT=$3
+      ;;
+  esac
 
-minimal_prompt_symbol_nml(){
-  echo -ne "%F{15}%K{1}  CMD  %k%f"
+  escaped_prompt="$(prompt_length "${VERSION_PROMPT}${ENVVAR_PROMPT}}")"
+  escaped_git="$(prompt_length ${GIT_PROMPT})"
+  right_width=$(($COLUMNS-$escaped_git-$escaped_prompt))
+
+  if [[ ${MINIMAL_SPACE_PROMPT} == 1 ]]; then
+    PROMPT=$'\n'${VERSION_PROMPT}${ENVVAR_PROMPT}${(l:$right_width:: :)}${GIT_PROMPT}$'\n'${LPROMPT}
+  else
+    PROMPT=${VERSION_PROMPT}${ENVVAR_PROMPT}${(l:$right_width:: :)}${GIT_PROMPT}$'\n'${LPROMPT}
+  fi
+  
+  zle && zle reset-prompt
 }
