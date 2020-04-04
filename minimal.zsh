@@ -154,14 +154,15 @@ prompt_reset(){
 
 version_prompt(){
   version_prompt_val=""
+
   if [[ -n ${@} ]]; then
     local LOOP_INDEX=0
     for _v in $(echo "${@}"); do
       [[ ${LOOP_INDEX} != "0" ]] && version_prompt_val+="%F{$MINIMAL_FADE_COLOR}${MINIMAL_PROMPT_SEP}%f"
       [[ ${LOOP_INDEX} == "0" ]] && LOOP_INDEX=$((LOOP_INDEX + 1)) && version_prompt_val+="%F{$MINIMAL_FADE_COLOR}[%f"
 
-      [[ ${_v} == "PYTHON" ]]    && version_prompt_val+="${MINIMAL_PY_SYM}$(plib_python_version)"
-      [[ ${_v} == "RUBY" ]]      && version_prompt_val+="${MINIMAL_RB_SYM}$(plib_ruby_version)"
+      [[ ${_v} == "PYTHON" ]]    && version_prompt_val+="${MINIMAL_PY_SYM}$(plib_pyenv_major_version):$(plib_python_version)"
+      [[ ${_v} == "RUBY" ]]      && version_prompt_val+="${MINIMAL_RB_SYM}$(plib_rbenv_major_version):$(plib_ruby_version)"
       [[ ${_v} == "JAVA" ]]      && version_prompt_val+="${MINIMAL_JAVA_SYM}$(plib_java_version)"
       [[ ${_v} == "GO" ]]        && version_prompt_val+="${MINIMAL_GO_SYM}$(plib_go_version)"
       [[ ${_v} == "ELIXIR" ]]    && version_prompt_val+="${MINIMAL_ELIXIR_SYM}$(plib_elixir_version)"
@@ -268,8 +269,21 @@ set_prompt(){
   escaped_prompt="$(prompt_length "${VERSION_PROMPT}${ENVVAR_PROMPT}")"
   escaped_git="$(prompt_length ${GIT_PROMPT})"
   right_width=$(($COLUMNS-$escaped_git-$escaped_prompt))
-  PROMPT=${VERSION_PROMPT}${ENVVAR_PROMPT}${(l:$right_width:: :)}${GIT_PROMPT}$'\n'${LPROMPT}
+
+  if [[ ${MINIMAL_SPACE_PROMPT} == 1 ]]; then
+    PROMPT=$'\n'${VERSION_PROMPT}${ENVVAR_PROMPT}${(l:$right_width:: :)}${GIT_PROMPT}$'\n'${LPROMPT}
+  else
+    PROMPT=${VERSION_PROMPT}${ENVVAR_PROMPT}${(l:$right_width:: :)}${GIT_PROMPT}$'\n'${LPROMPT}
+  fi
+  
   zle && zle reset-prompt
+}
+
+__import_env() {
+  echo "${1}" | while read -r line; do
+    echo $line
+    eval "export $(echo "${line}" | awk -F'=' '{print $1"=\""$2"\""}')" > /dev/null
+  done
 }
 
 minimal_renderer(){
@@ -294,7 +308,7 @@ minimal_renderer(){
     fi
 
     prompt_reset
-    [[ ${MINIMAL_SPACE_PROMPT} == 1 ]] && echo
+    async_worker_eval "minimal" __import_env "`env`"
     async_job "minimal" version_prompt $MINIMAL_VERSION_PROMPT
     async_job "minimal" envvar_prompt $MINIMAL_ENVVAR_PROMPT $MINIMAL_VERSION_VALUES ${#MINIMAL_ENVVAR_PROMPT[@]}
     async_job "minimal" git_prompt $CURRENT_PATH
