@@ -222,11 +222,16 @@ set_prompt(){
   escaped_git="$(prompt_length ${GIT_PROMPT})"
   right_width=$(($COLUMNS-$escaped_git-$escaped_prompt))
 
+  OLD_PROMPT=PROMPT
+
   if [[ ${MINIMAL_SPACE_PROMPT} == 1 ]]; then
-    PROMPT=${(l:$COLUMNS:: :)}${VERSION_PROMPT}${ENVVAR_PROMPT}${(l:$right_width:: :)}${GIT_PROMPT}$' '${LPROMPT}
+    NEW_PROMPT=${(l:$COLUMNS:: :)}${VERSION_PROMPT}${ENVVAR_PROMPT}${(l:$right_width:: :)}${GIT_PROMPT}$' '${LPROMPT}
   else
-    PROMPT=${VERSION_PROMPT}${ENVVAR_PROMPT}${(l:$right_width:: :)}${GIT_PROMPT}$' '${LPROMPT}
+    NEW_PROMPT=${VERSION_PROMPT}${ENVVAR_PROMPT}${(l:$right_width:: :)}${GIT_PROMPT}$' '${LPROMPT}
   fi
-  
-  zle && zle reset-prompt
+
+  if [[ $NEW_PROMPT != $OLD_PROMPT ]]; then
+    PROMPT=$NEW_PROMPT
+    zle && zle reset-prompt
+  fi
 }
