@@ -1,7 +1,8 @@
-__import_env() {
-  echo "${1}" | while read -r line; do
-    echo $line
-    eval "export $(echo "${line}" | awk -F'=' '{print $1"=\""$2"\""}')" > /dev/null
+#!/usr/bin/env zsh
+
+minimal_import_env(){
+  echo "${1}" | while IFS='=' read -r name value ; do
+    eval "export ${name}=${value}"
   done
 }
 
@@ -155,9 +156,11 @@ prompt_reset(){
 version_prompt(){
   version_prompt_val=""
 
+  minimal_import_env $2
+
   if [[ -n ${@} ]]; then
     local LOOP_INDEX=0
-    for _v in $(echo "${@}"); do
+    for _v in $(echo "${1}"); do
       [[ ${LOOP_INDEX} != "0" ]] && version_prompt_val+="%F{$MINIMAL_FADE_COLOR}${MINIMAL_PROMPT_SEP}%f"
       [[ ${LOOP_INDEX} == "0" ]] && LOOP_INDEX=$((LOOP_INDEX + 1)) && version_prompt_val+="%F{$MINIMAL_FADE_COLOR}[%f"
 

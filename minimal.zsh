@@ -57,8 +57,7 @@ minimal_renderer(){
     fi
 
     prompt_reset
-    async_worker_eval "minimal_renderer" __import_env "`env`"
-    async_job "minimal_renderer" version_prompt $MINIMAL_VERSION_PROMPT
+    async_job "minimal_renderer" version_prompt "$MINIMAL_VERSION_PROMPT" "$(env | grep --color=never "${MINIMAL_VERSION_REGEX}")"
     async_job "minimal_renderer" envvar_prompt $MINIMAL_ENVVAR_PROMPT $MINIMAL_VERSION_VALUES ${#MINIMAL_ENVVAR_PROMPT[@]}
     async_job "minimal_renderer" git_prompt $CURRENT_PATH
     async_job "minimal_renderer" prompt $VIRTUAL_ENV
