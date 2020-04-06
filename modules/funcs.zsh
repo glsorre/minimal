@@ -13,8 +13,8 @@ minimal_render_vi_mode(){
 
 minimal_vi_prompt(){
   case ${KEYMAP} in
-    (vicmd)      echo -ne "$(minimal_prompt_symbol_nml)" ;;
-    (main|viins) echo -ne "$(minimal_prompt_symbol_ins)" ;;
+    (vicmd)      echo -n "$(minimal_prompt_symbol_nml)" ;;
+    (main|viins) echo -n "$(minimal_prompt_symbol_ins)" ;;
   esac
 }
 
@@ -42,7 +42,7 @@ minimal_git_left_right(){
   [[ "$__push" != 0 ]] && [[ "$__push" != '' ]] && __pushpull+="${__push}${MINIMAL_GIT_PUSH_SYM}"
 
   if [[ "$__pushpull" != '' ]]; then
-    echo -ne "${__pushpull}"
+    echo -n "${__pushpull}"
   fi
 }
 
