@@ -222,9 +222,9 @@ set_prompt(){
   right_width=$(($COLUMNS-$escaped_git-$escaped_prompt))
 
   if [[ ${MINIMAL_SPACE_PROMPT} == 1 ]]; then
-    PROMPT=$'\n'${VERSION_PROMPT}${ENVVAR_PROMPT}${(l:$right_width:: :)}${GIT_PROMPT}$'\n'${LPROMPT}
+    PROMPT=${(l:$COLUMNS:: :)}${VERSION_PROMPT}${ENVVAR_PROMPT}${(l:$right_width:: :)}${GIT_PROMPT}$' '${LPROMPT}
   else
-    PROMPT=${VERSION_PROMPT}${ENVVAR_PROMPT}${(l:$right_width:: :)}${GIT_PROMPT}$'\n'${LPROMPT}
+    PROMPT=${VERSION_PROMPT}${ENVVAR_PROMPT}${(l:$right_width:: :)}${GIT_PROMPT}$' '${LPROMPT}
   fi
   
   zle && zle reset-prompt
