@@ -14,6 +14,9 @@ zle -N zle-line-init
 zle -N zle-keymap-select
 setopt prompt_subst
 async_start_worker "minimal_renderer" -n -u
+autoload -Uz add-zsh-hook
+add-zsh-hook preexec reset_timer
+add-zsh-hook precmd minimal_renderer
 
 TRAPWINCH() {
   preexec
@@ -29,10 +32,6 @@ zle-keymap-select(){
   minimal_render_vi_mode
   preexec
   zle && zle reset-prompt
-}
-
-preexec(){
-  export TIMER=$(date +%s)
 }
 
 minimal_renderer(){
@@ -63,10 +62,5 @@ minimal_renderer(){
   else
     prompt_reset
     PROMPT='%~ $  '
-    zle && zle reset_prompt
   fi
-}
-
-precmd(){
-  minimal_renderer
 }

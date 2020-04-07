@@ -235,3 +235,8 @@ set_prompt(){
     zle && zle reset-prompt
   fi
 }
+
+reset_timer(){
+  TIMER=$(date +%s)
+  zle && zle reset-prompt
+}
