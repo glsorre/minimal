@@ -35,15 +35,16 @@ zle-keymap-select(){
 }
 
 minimal_renderer(){
+  if [[ ${MINIMAL_SPACE_PROMPT} == 1 ]] && echo
   if [[ `tput colors` == 256 ]] ; then
     async_register_callback "minimal_renderer" set_prompt
 
     local MINIMAL_VERSION_VALUES=()
     for _var in $(echo "${MINIMAL_ENVVAR_PROMPT}"); do
       if [ ${(P)_var} ]; then
-        MINIMAL_VERSION_VALUES+=(${(P)_var})
+        MINIMAL_ENVVAR_VALUES+=(${(P)_var})
       else
-        MINIMAL_VERSION_VALUES+=(" ")
+        MINIMAL_ENVVAR_VALUES+=(" ")
       fi
     done
     local CURRENT_PATH=`pwd`
@@ -56,7 +57,7 @@ minimal_renderer(){
     prompt_reset
     async_job "minimal_renderer" prompt $VIRTUAL_ENV
     async_job "minimal_renderer" rprompt $TIMER $(plib_bg_count)
-    async_job "minimal_renderer" envvar_prompt $MINIMAL_ENVVAR_PROMPT $MINIMAL_VERSION_VALUES ${#MINIMAL_ENVVAR_PROMPT[@]}
+    async_job "minimal_renderer" envvar_prompt $MINIMAL_ENVVAR_PROMPT $MINIMAL_ENVVAR_VALUES ${#MINIMAL_ENVVAR_PROMPT[@]}
     async_job "minimal_renderer" git_prompt $CURRENT_PATH
     async_job "minimal_renderer" version_prompt "$MINIMAL_VERSION_PROMPT" "$(env | grep --color=never "${MINIMAL_VERSION_REGEX}")"
   else

@@ -219,20 +219,15 @@ set_prompt(){
   esac
 
   escaped_prompt="$(prompt_length "${VERSION_PROMPT}${ENVVAR_PROMPT}}")"
-  escaped_git="$(prompt_length ${GIT_PROMPT})"
+  escaped_git="$(prompt_length "${GIT_PROMPT}")"
   right_width=$(($COLUMNS-$escaped_git-$escaped_prompt))
 
   OLD_PROMPT=PROMPT
-
-  if [[ ${MINIMAL_SPACE_PROMPT} == 1 ]]; then
-    NEW_PROMPT=${(l:$COLUMNS:: :)}${VERSION_PROMPT}${ENVVAR_PROMPT}${(l:$right_width:: :)}${GIT_PROMPT}$' '${LPROMPT}
-  else
-    NEW_PROMPT=${VERSION_PROMPT}${ENVVAR_PROMPT}${(l:$right_width:: :)}${GIT_PROMPT}$' '${LPROMPT}
-  fi
+  NEW_PROMPT="${VERSION_PROMPT}${ENVVAR_PROMPT}${(l:$right_width:: :)}${GIT_PROMPT} ${LPROMPT}"
 
   if [[ $NEW_PROMPT != $OLD_PROMPT ]]; then
     PROMPT=$NEW_PROMPT
-    zle && zle reset-prompt
+    zle && zle .reset-prompt
   fi
 }
 
