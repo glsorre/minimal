@@ -223,7 +223,7 @@ set_prompt(){
   right_width=$(($COLUMNS-$escaped_git-$escaped_prompt))
 
   OLD_PROMPT=PROMPT
-  NEW_PROMPT="${VERSION_PROMPT}${ENVVAR_PROMPT}${(l:$right_width:: :)}${GIT_PROMPT} ${LPROMPT}"
+  NEW_PROMPT=${VERSION_PROMPT}${ENVVAR_PROMPT}${(l:$right_width:: :)}${GIT_PROMPT}$'\n'${LPROMPT}
 
   if [[ $NEW_PROMPT != $OLD_PROMPT ]]; then
     PROMPT=$NEW_PROMPT
@@ -233,5 +233,4 @@ set_prompt(){
 
 reset_timer(){
   TIMER=$(date +%s)
-  zle && zle reset-prompt
 }

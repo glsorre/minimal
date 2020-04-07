@@ -30,7 +30,7 @@ zle-line-init(){
 
 zle-keymap-select(){
   minimal_render_vi_mode
-  preexec
+  reset_timer
   zle && zle reset-prompt
 }
 
