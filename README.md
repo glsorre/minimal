@@ -13,3 +13,9 @@ It is optimized for use with [Fira Code](https://github.com/tonsky/FiraCode) and
 ```
 antibody bundle glsorre/minimal
 ```
+### Manual
+
+In your `.zshrc` add
+```
+source minimal.zsh
+```
