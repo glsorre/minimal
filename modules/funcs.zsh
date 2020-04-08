@@ -200,6 +200,8 @@ envvar_prompt(){
 }
 
 set_prompt(){
+  ASYNC_COUNTER=$(($ASYNC_COUNTER + 1))
+
   case $1 in
     rprompt*)
       RPROMPT=$3
@@ -214,7 +216,8 @@ set_prompt(){
       GIT_PROMPT=$3
       ;;
     prompt)
-      LPROMPT=$3
+      PROMPT=$3
+      zle && zle .reset-prompt
       ;;
   esac
 
@@ -222,12 +225,12 @@ set_prompt(){
   escaped_git="$(prompt_length "${GIT_PROMPT}")"
   right_width=$(($COLUMNS-$escaped_git-$escaped_prompt))
 
-  OLD_PROMPT=PROMPT
-  NEW_PROMPT=${VERSION_PROMPT}${ENVVAR_PROMPT}${(l:$right_width:: :)}${GIT_PROMPT}$'\n'${LPROMPT}
+  prompt_info=${VERSION_PROMPT}${ENVVAR_PROMPT}${(l:$right_width:: :)}${GIT_PROMPT}
 
-  if [[ $NEW_PROMPT != $OLD_PROMPT ]]; then
-    PROMPT=$NEW_PROMPT
+  if [[ $ASYNC_COUNTER == 5 ]]; then
+    PROMPT=$prompt_info$'\n'$PROMPT
     zle && zle .reset-prompt
+    async_stop_worker "minimal_renderer"
   fi
 }
 

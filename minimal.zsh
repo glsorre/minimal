@@ -13,31 +13,38 @@ zle -N minimal-accept-line
 zle -N zle-line-init
 zle -N zle-keymap-select
 setopt prompt_subst
-async_start_worker "minimal_renderer" -n -u
 autoload -Uz add-zsh-hook
 add-zsh-hook preexec reset_timer
 add-zsh-hook precmd minimal_renderer
 
 TRAPWINCH() {
-  preexec
-  zle && zle reset-prompt
+  reset_timer
+  zle && zle .reset-prompt
 }
 
 zle-line-init(){
   minimal_render_vi_mode
-  zle && zle reset-prompt
+  zle && zle .reset-prompt
 }
 
 zle-keymap-select(){
   minimal_render_vi_mode
   reset_timer
-  zle && zle reset-prompt
+  zle && zle .reset-prompt
 }
 
 minimal_renderer(){
-  if [[ ${MINIMAL_SPACE_PROMPT} == 1 ]] && echo
+  prompt_reset
+  PROMPT='%~ $  '
+  zle && .reset-prompt
+
   if [[ `tput colors` == 256 ]] ; then
+    async_start_worker "minimal_renderer" -n -u
+
+    [[ ${MINIMAL_SPACE_PROMPT} == 1 ]] && echo
+
     async_register_callback "minimal_renderer" set_prompt
+    ASYNC_COUNTER=0
 
     local MINIMAL_VERSION_VALUES=()
     for _var in $(echo "${MINIMAL_ENVVAR_PROMPT}"); do
@@ -60,8 +67,6 @@ minimal_renderer(){
     async_job "minimal_renderer" envvar_prompt $MINIMAL_ENVVAR_PROMPT $MINIMAL_ENVVAR_VALUES ${#MINIMAL_ENVVAR_PROMPT[@]}
     async_job "minimal_renderer" git_prompt $CURRENT_PATH
     async_job "minimal_renderer" version_prompt "$MINIMAL_VERSION_PROMPT" "$(env | grep --color=never "${MINIMAL_VERSION_REGEX}")"
-  else
-    prompt_reset
-    PROMPT='%~ $  '
+    ASYNC_COUNTER=0
   fi
 }
