@@ -77,7 +77,7 @@ git_prompt(){
 
     [[ mod_st -gt 0 || add_st -gt 0 || del_st -gt 0 ]] && git_prompt_val+=" %F{foreground}${MINIMAL_GIT_STAGE_SYM}%f"
     [[ mod_ut -gt 0 || add_ut -gt 0 || del_ut -gt 0 || new -gt 0 ]] && git_prompt_val+=" %F{foreground}${MINIMAL_GIT_UNSTAGE_SYM}%f"
-    [[ $(plib_git_stash) -gt 1 ]] && git_prompt_val+=" ${MINIMAL_GIT_STASH_SYM}"
+    [[ $(plib_git_stash) -gt 0 ]] && git_prompt_val+=" ${MINIMAL_GIT_STASH_SYM}"
     [[ ! -z $(minimal_git_left_right) ]] && git_prompt_val+=" %F{red}$(minimal_git_left_right)%f"
     git_prompt_val+=" %F{$MINIMAL_FADE_COLOR}]%f "
   fi
