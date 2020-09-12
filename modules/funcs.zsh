@@ -1,7 +1,8 @@
-__import_env() {
-  echo "${1}" | while read -r line; do
-    echo $line
-    eval "export $(echo "${line}" | awk -F'=' '{print $1"=\""$2"\""}')" > /dev/null
+#!/usr/bin/env zsh
+
+minimal_import_env(){
+  echo "${1}" | while IFS='=' read -r name value ; do
+    eval "export ${name}=${value}"
   done
 }
 
@@ -12,8 +13,8 @@ minimal_render_vi_mode(){
 
 minimal_vi_prompt(){
   case ${KEYMAP} in
-    (vicmd)      echo -ne "$(minimal_prompt_symbol_nml)" ;;
-    (main|viins) echo -ne "$(minimal_prompt_symbol_ins)" ;;
+    (vicmd)      echo -n "$(minimal_prompt_symbol_nml)" ;;
+    (main|viins) echo -n "$(minimal_prompt_symbol_ins)" ;;
   esac
 }
 
@@ -41,7 +42,7 @@ minimal_git_left_right(){
   [[ "$__push" != 0 ]] && [[ "$__push" != '' ]] && __pushpull+="${__push}${MINIMAL_GIT_PUSH_SYM}"
 
   if [[ "$__pushpull" != '' ]]; then
-    echo -ne "${__pushpull}"
+    echo -n "${__pushpull}"
   fi
 }
 
@@ -49,8 +50,9 @@ prompt(){
   export VIRTUAL_ENV=$1
   prompt_std=""
   venv=$(plib_venv)
+  hostname=$(hostname)
   if [[ -v venv ]] && prompt_std+="%F{$MINIMAL_FADE_COLOR}${venv}%f "
-  prompt_std+="%f%F{$MINIMAL_FADE_COLOR}%~%f  "
+  prompt_std+="%f%F{$MINIMAL_FADE_COLOR}${hostname}@%~%f  "
   prompt_vi='${MINIMAL_VI_PROMPT} '"${prompt_std}"
 
   echo -n "${prompt_vi}"
@@ -155,9 +157,11 @@ prompt_reset(){
 version_prompt(){
   version_prompt_val=""
 
+  minimal_import_env $2
+
   if [[ -n ${@} ]]; then
     local LOOP_INDEX=0
-    for _v in $(echo "${@}"); do
+    for _v in $(echo "${1}"); do
       [[ ${LOOP_INDEX} != "0" ]] && version_prompt_val+="%F{$MINIMAL_FADE_COLOR}${MINIMAL_PROMPT_SEP}%f"
       [[ ${LOOP_INDEX} == "0" ]] && LOOP_INDEX=$((LOOP_INDEX + 1)) && version_prompt_val+="%F{$MINIMAL_FADE_COLOR}[%f"
 
@@ -196,33 +200,40 @@ envvar_prompt(){
 }
 
 set_prompt(){
+  ASYNC_COUNTER=$(($ASYNC_COUNTER + 1))
+
   case $1 in
     rprompt*)
       RPROMPT=$3
       ;;
     version_prompt)
-      export VERSION_PROMPT=$3
+      VERSION_PROMPT=$3
       ;;
     envvar_prompt)
-      export ENVVAR_PROMPT=$3
+      ENVVAR_PROMPT=$3
       ;;
     git_prompt)
-      export GIT_PROMPT=$3
+      GIT_PROMPT=$3
       ;;
     prompt)
-      export LPROMPT=$3
+      PROMPT=$3
+      zle && zle .reset-prompt
       ;;
   esac
 
   escaped_prompt="$(prompt_length "${VERSION_PROMPT}${ENVVAR_PROMPT}}")"
-  escaped_git="$(prompt_length ${GIT_PROMPT})"
+  escaped_git="$(prompt_length "${GIT_PROMPT}")"
   right_width=$(($COLUMNS-$escaped_git-$escaped_prompt))
 
-  if [[ ${MINIMAL_SPACE_PROMPT} == 1 ]]; then
-    PROMPT=$'\n'${VERSION_PROMPT}${ENVVAR_PROMPT}${(l:$right_width:: :)}${GIT_PROMPT}$'\n'${LPROMPT}
-  else
-    PROMPT=${VERSION_PROMPT}${ENVVAR_PROMPT}${(l:$right_width:: :)}${GIT_PROMPT}$'\n'${LPROMPT}
+  prompt_info=${VERSION_PROMPT}${ENVVAR_PROMPT}${(l:$right_width:: :)}${GIT_PROMPT}
+
+  if [[ $ASYNC_COUNTER == 5 ]]; then
+    PROMPT=$prompt_info$'\n'$PROMPT
+    zle && zle .reset-prompt
+    async_stop_worker "minimal_renderer"
   fi
-  
-  zle && zle reset-prompt
+}
+
+reset_timer(){
+  TIMER=$(date +%s)
 }
