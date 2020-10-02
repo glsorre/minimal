@@ -1,6 +1,3 @@
-[submodule "libs/libs/promptlib"]
-	path = libs/libs/promptlib
-	url = https://github.com/eendroroy/promptlib-zsh.git
 [submodule "libs/promptlib"]
 	path = libs/promptlib
 	url = https://github.com/eendroroy/promptlib-zsh.git
