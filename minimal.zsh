@@ -8,6 +8,7 @@ source "${THEME_ROOT}/libs/zsh-async/async.zsh"
 source "${THEME_ROOT}/modules/consts.zsh"
 source "${THEME_ROOT}/modules/funcs.zsh"
 
+setopt clobber
 bindkey '^M' minimal-accept-line
 zle -N minimal-accept-line
 zle -N zle-line-init
@@ -61,7 +62,6 @@ minimal_renderer(){
       TIMER=$(date +%s)
     fi
 
-    prompt_reset
     async_job "minimal_renderer" prompt $VIRTUAL_ENV
     async_job "minimal_renderer" rprompt $TIMER $(plib_bg_count)
     async_job "minimal_renderer" envvar_prompt $MINIMAL_ENVVAR_PROMPT $MINIMAL_ENVVAR_VALUES ${#MINIMAL_ENVVAR_PROMPT[@]}
