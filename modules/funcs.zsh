@@ -52,7 +52,7 @@ prompt(){
   venv=$(plib_venv)
   hostname=$(hostname)
   if [[ -v venv ]] && prompt_std+="%F{$MINIMAL_FADE_COLOR}${venv}%f "
-  prompt_std+="%f%F{$MINIMAL_FADE_COLOR}~%f  "
+  prompt_std+="%f%F{$MINIMAL_FADE_COLOR}%~%f  "
   prompt_vi='${MINIMAL_VI_PROMPT} '"${prompt_std}"
 
   echo -n "${prompt_vi}"
