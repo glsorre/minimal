@@ -228,7 +228,7 @@ set_prompt(){
   prompt_info=${VERSION_PROMPT}${ENVVAR_PROMPT}${(l:$right_width:: :)}${GIT_PROMPT}
 
   if [[ $ASYNC_COUNTER == 5 ]]; then
-    PROMPT=$prompt_info$'\n'$PROMPT
+    PROMPT='%{$(iterm2_prompt_mark)%}'$prompt_info$'\n'$PROMPT
     zle && zle .reset-prompt
     async_stop_worker "minimal_renderer"
   fi
