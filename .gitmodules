@@ -1,6 +1,6 @@
 [submodule "libs/promptlib"]
 	path = libs/promptlib
-	url = https://github.com/eendroroy/promptlib-zsh.git
+	url = git@github.com:eendroroy/promptlib-zsh.git
 [submodule "libs/zsh-async"]
 	path = libs/zsh-async
 	url = git@github.com:mafredri/zsh-async.git
